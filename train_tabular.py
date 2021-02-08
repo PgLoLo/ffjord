@@ -200,6 +200,9 @@ if __name__ == '__main__':
         n_vals_without_improvement = 0
         end = time.time()
         model.train()
+
+        last_checkpt = float('-inf')
+
         while True:
             if args.early_stopping > 0 and n_vals_without_improvement > args.early_stopping:
                 break
@@ -251,6 +254,14 @@ if __name__ == '__main__':
                     logger.info(log_message)
                 itr += 1
                 end = time.time()
+
+                if time.time() - last_checkpt > 10 * 60:
+                    utils.makedirs(args.save)
+                    torch.save({
+                        'args': args,
+                        'state_dict': model.state_dict(),
+                    }, os.path.join(args.save, f'{itr}_checkpt.pth'))
+                    last_checkpt = time.time()
 
                 # Validation loop.
                 if itr % args.val_freq == 0:
